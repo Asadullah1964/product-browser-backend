@@ -3,6 +3,8 @@ const Product = require("../models/Product");
 
 const getProducts = async (req,res)=>{
 
+    const startTime = Date.now();
+
     try{
 
         let {
@@ -16,8 +18,6 @@ const getProducts = async (req,res)=>{
         limit = Number(limit);
 
 
-
-        // limit protection
         if(limit > 100){
             limit = 100;
         }
@@ -42,8 +42,7 @@ const getProducts = async (req,res)=>{
 
 
 
-
-        // cursor logic
+        // cursor pagination
         if(cursorCreatedAt && cursorId){
 
 
@@ -56,15 +55,14 @@ const getProducts = async (req,res)=>{
 
                 return res.status(400)
                 .json({
-                    message:
-                    "Invalid cursor date"
+                    message:"Invalid cursor date"
                 });
 
             }
 
 
 
-            query={
+            query = {
 
                 ...query,
 
@@ -75,7 +73,6 @@ const getProducts = async (req,res)=>{
                             $lt:cursorDate
                         }
                     },
-
 
                     {
                         created_at:cursorDate,
@@ -95,13 +92,10 @@ const getProducts = async (req,res)=>{
 
         const products =
             await Product.find(query)
-
+            
             .sort({
-
                 created_at:-1,
-
                 _id:-1
-
             })
 
             .limit(limit);
@@ -115,9 +109,7 @@ const getProducts = async (req,res)=>{
         if(products.length > 0){
 
             const last =
-                products[
-                    products.length-1
-                ];
+                products[products.length-1];
 
 
             nextCursor={
@@ -134,9 +126,16 @@ const getProducts = async (req,res)=>{
 
 
 
+        const responseTime =
+            Date.now() - startTime;
+
+
+
         res.json({
 
             count:products.length,
+
+            responseTime:`${responseTime}ms`,
 
             data:products,
 
@@ -155,8 +154,7 @@ const getProducts = async (req,res)=>{
         res.status(500)
         .json({
 
-            message:
-            "Server error"
+            message:"Server error"
 
         });
 
