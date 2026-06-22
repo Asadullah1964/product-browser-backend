@@ -42,6 +42,9 @@ function generateProducts(count){
             category:
               randomItem(categories),
 
+             image:
+    `https://source.unsplash.com/300x300/?${randomItem(categories)}&${i}`,
+
             price:
               Math.floor(
                 Math.random()*100000
