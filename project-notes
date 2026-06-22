@@ -1,0 +1,28 @@
+product-browser-backend/
+
+│
+├── src/
+│   │
+│   ├── server.js
+│   │
+│   ├── config/
+│   │   └── db.js
+│   │
+│   ├── models/
+│   │   └── Product.js
+│   │
+│   ├── routes/
+│   │   └── productRoutes.js
+│   │
+│   ├── controllers/
+│   │   └── productController.js
+│   │
+│   └── utils/
+│       └── generateProducts.js
+│
+├── scripts/
+│   └── seed.js
+│
+├── .env
+├── package.json
+└── README.md
