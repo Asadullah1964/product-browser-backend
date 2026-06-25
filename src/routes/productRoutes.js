@@ -10,6 +10,10 @@ const {
 
 router.get("/", getProducts);
 router.post("/", createProduct);
+router.post(
+    "/bulk",
+    bulkCreateProducts
+);
 router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
 

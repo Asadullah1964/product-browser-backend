@@ -163,6 +163,7 @@ const getProducts = async (req, res) => {
 
 }
 
+
 const createProduct = async (req, res) => {
 
     try {
@@ -242,8 +243,6 @@ const updateProduct = async (req, res) => {
 }
 
 
-
-
 const deleteProduct = async (req, res) => {
     try {
         console.log("DELETE PARAM ID:", req.params.id);
@@ -276,10 +275,58 @@ const deleteProduct = async (req, res) => {
 };
 
 
+const bulkCreateProducts = async (req, res) => {
+
+
+    try {
+
+
+        const products = req.body.products;
+
+
+        if (!Array.isArray(products)) {
+
+            return res.status(400)
+                .json({
+                    message: "Products array required"
+                });
+
+        }
+
+
+
+        const result =
+            await Product.insertMany(products);
+
+
+
+        res.json({
+
+            inserted:
+                result.length
+
+        });
+
+
+    }
+    catch (error) {
+
+        res.status(500)
+            .json({
+                message: error.message
+            });
+
+    }
+
+
+}
+
+
 
 module.exports = {
     getProducts,
     createProduct,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    bulkCreateProducts
 }
