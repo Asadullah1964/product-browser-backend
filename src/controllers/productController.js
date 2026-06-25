@@ -275,7 +275,7 @@ const deleteProduct = async (req, res) => {
 };
 
 
-const BULK_LIMIT = 500;
+const BULK_LIMIT = 5000;
 const INSERT_BATCH_SIZE = 1000;
 
 const bulkCreateProducts = async (req, res) => {
