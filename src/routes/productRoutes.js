@@ -6,6 +6,7 @@ const {
     createProduct,
     updateProduct,
     deleteProduct,
+    bulkCreateProducts
 } = require("../controllers/productController");
 
 router.get("/", getProducts);

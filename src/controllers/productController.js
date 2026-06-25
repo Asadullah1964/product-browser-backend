@@ -398,10 +398,6 @@ const bulkCreateProducts = async (req, res) => {
     }
 };
 
-module.exports = {
-    bulkCreateProducts,
-};
-
 
 
 module.exports = {
@@ -409,5 +405,5 @@ module.exports = {
     createProduct,
     updateProduct,
     deleteProduct,
-    bulkCreateProducts
+    bulkCreateProducts,
 }
