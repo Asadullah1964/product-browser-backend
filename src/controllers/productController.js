@@ -275,51 +275,132 @@ const deleteProduct = async (req, res) => {
 };
 
 
+const BULK_LIMIT = 5000;
+const INSERT_BATCH_SIZE = 1000;
+
 const bulkCreateProducts = async (req, res) => {
+  try {
+    const products = req.body.products;
 
+    if (!Array.isArray(products)) {
+      return res.status(400).json({
+        message: "Products array required",
+      });
+    }
 
-    try {
+    if (products.length === 0) {
+      return res.status(400).json({
+        message: "Products array cannot be empty",
+      });
+    }
 
+    if (products.length > BULK_LIMIT) {
+      return res.status(413).json({
+        message: `Maximum ${BULK_LIMIT} products allowed per request`,
+      });
+    }
 
-        const products = req.body.products;
+    const cleanedProducts = products.map((item, index) => ({
+      name: typeof item.name === "string" ? item.name.trim() : "",
+      category: typeof item.category === "string" ? item.category.trim().toLowerCase() : "",
+      price: Number(item.price),
+      image: typeof item.image === "string" ? item.image.trim() : "",
+      _requestIndex: index,
+    }));
 
+    const validProducts = [];
+    const rejected = [];
 
-        if (!Array.isArray(products)) {
+    for (const item of cleanedProducts) {
+      if (!item.name) {
+        rejected.push({
+          index: item._requestIndex,
+          message: "Name is required",
+        });
+        continue;
+      }
 
-            return res.status(400)
-                .json({
-                    message: "Products array required"
-                });
+      if (!item.category) {
+        rejected.push({
+          index: item._requestIndex,
+          message: "Category is required",
+        });
+        continue;
+      }
 
-        }
+      if (!Number.isFinite(item.price) || item.price < 0) {
+        rejected.push({
+          index: item._requestIndex,
+          message: "Valid price is required",
+        });
+        continue;
+      }
 
+      validProducts.push({
+        name: item.name,
+        category: item.category,
+        price: item.price,
+        image: item.image,
+      });
+    }
 
+    if (validProducts.length === 0) {
+      return res.status(400).json({
+        message: "No valid products to insert",
+        inserted: 0,
+        rejected,
+      });
+    }
 
-        const result =
-            await Product.insertMany(products);
+    let inserted = 0;
+    const writeErrors = [];
 
+    for (let i = 0; i < validProducts.length; i += INSERT_BATCH_SIZE) {
+      const batch = validProducts.slice(i, i + INSERT_BATCH_SIZE);
 
-
-        res.json({
-
-            inserted:
-                result.length
-
+      try {
+        const result = await Product.insertMany(batch, {
+          ordered: false,
         });
 
+        inserted += result.length;
+      } catch (error) {
+        if (error.insertedDocs) {
+          inserted += error.insertedDocs.length;
+        }
 
-    }
-    catch (error) {
-
-        res.status(500)
-            .json({
-                message: error.message
+        if (error.writeErrors?.length) {
+          error.writeErrors.forEach((err) => {
+            writeErrors.push({
+              index: i + err.index,
+              message: err.errmsg || err.message || "Insert failed",
             });
-
+          });
+        } else {
+          writeErrors.push({
+            index: i,
+            message: error.message,
+          });
+        }
+      }
     }
 
+    return res.status(201).json({
+      message: "Bulk insert processed",
+      inserted,
+      rejectedCount: rejected.length + writeErrors.length,
+      rejected: [...rejected, ...writeErrors],
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message || "Internal server error",
+    });
+  }
+};
 
-}
+module.exports = {
+  bulkCreateProducts,
+};
 
 
 
